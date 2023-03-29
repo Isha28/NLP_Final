@@ -107,8 +107,10 @@ def report_per_epoch(args, test_df, seed, model_configs):
                 # Create a MultiLabelClassificationModel
                 model = ClassificationModel(model_configs["architecture"], checkpoint_dir)
 
+                list_test_df = [str(i) for i in test_df['text'].values]
+
                 # Evaluating the model on test data
-                predictions, raw_outputs = model.predict(test_df.text)
+                predictions, raw_outputs = model.predict(list_test_df)
                 truth = list(test_df.labels)
                 result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
 
