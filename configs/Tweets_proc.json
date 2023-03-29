@@ -1,5 +1,5 @@
 {
-    "task": "binary",
+    "task": "multiclass",
     "num_of_seeds": 3,
     "initial_seed": 123,
     "epochs_per_seed": 5,
