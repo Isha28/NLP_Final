@@ -29,9 +29,10 @@ def report_per_epoch(args, test_df, seed, model_configs):
 
             if args.task == "multilabel":
                 model = MultiLabelClassificationModel(model_configs["architecture"], checkpoint_dir)
-
+                list_test_df = [str(i) for i in test_df['text'].values]
                 ## Performance data: Evaluating the model on test data
-                predictions, raw_outputs = model.predict(test_df.text)
+                predictions, raw_outputs = model.predict(list_test_df)
+                print("testing 34!!")
                 result_test, model_outputs, wrong_predictions = model.eval_model(test_df)
     
                 result = {k: float(v) for k, v in result_test.items()}
@@ -234,6 +235,7 @@ def train_multilabel(args, train_df, eval_df, test_df, seed, model_configs):
     model_args.best_model_dir = os.path.join(args.output_dir, "best_model", "")
     model_args.output_dir =  args.output_dir
     model_args.num_train_epochs = args.epochs_per_seed
+    #model_args.num_train_epochs = 1
     model_args.fp16 = False
     model_args.max_seq_length = args.max_seq_length
     model_args.train_batch_size = args.train_batch_size
@@ -261,9 +263,10 @@ def train_multilabel(args, train_df, eval_df, test_df, seed, model_configs):
 
     # Train the model
     model.train_model(train_df, eval_df=eval_df) 
-
+    list_test_df = [str(i) for i in test_df['text'].values]
     # Evaluatinge the model on test data
-    predictions, raw_outputs = model.predict(test_df.text)
+    predictions, raw_outputs = model.predict(list_test_df)
+    print("testing 268!!!")
     result_test, model_outputs, wrong_predictions = model.eval_model(test_df)
 
     # Collecting relevant results
@@ -328,9 +331,9 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
 
     # Train the model
     model.train_model(train_df, eval_df=eval_df)
-
+    list_test_df = [str(i) for i in test_df['text'].values]
     # Evaluating the model on test data
-    predictions, raw_outputs = model.predict(test_df.text)
+    predictions, raw_outputs = model.predict(list_test_df)
     truth = list(test_df.labels)
     result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
     
@@ -652,7 +655,7 @@ def main():
 
     ## Main parameters
     parser.add_argument("--dataset",
-                        default = "insightCrime",
+                        default = "Tweets",
                         type=str,
                         help="The input dataset.")
     parser.add_argument("--report_per_epoch",
