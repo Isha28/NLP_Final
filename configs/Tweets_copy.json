@@ -1,0 +1,17 @@
+{
+    "task": "multiclass",
+    "num_of_seeds": 1,
+    "initial_seed": 123,
+    "epochs_per_seed": 1,
+    "train_batch_size": 8,
+    "max_seq_length": 512,
+    "models": [
+        {
+            "model_name": "bertweet-base-sentiment-analysis",
+            "model_path": "finiteautomata/bertweet-base-sentiment-analysis",
+            "architecture": "roberta",
+            "do_lower_case": false
+        }
+    ]
+}
+
