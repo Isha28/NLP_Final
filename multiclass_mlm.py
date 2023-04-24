@@ -9,6 +9,9 @@ import csv
 import os
 import json
 
+from transformers import AutoModelForMaskedLM, AutoTokenizer
+import torch
+
 def report_per_epoch(args, test_df, seed, model_configs):
     list_of_results = []
     for epoch in range(1, args.epochs_per_seed+1):  
@@ -84,6 +87,21 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
         model_args.save_model_every_epoch = False
         model_args.no_save = True
 
+    # Load masked language model and tokenizer
+    model_name = model_configs["model_path"].split("/")[-1]
+    print ("PRINTING model_path",model_configs["model_path"])
+    print ("PRINTING model_name",model_name)
+    mlm_model = AutoModelForMaskedLM.from_pretrained(model_name)
+    mlm_tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    # Add masked language modeling to the training data
+    mlm_train_df = train_df.copy()
+    mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
+    mlm_train_df['labels'] = [-1]*len(mlm_train_df)
+
+    # Combine the original and masked dataframes
+    train_df = pd.concat([train_df, mlm_train_df])
+
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
     pretrained_model = model_configs["model_path"]
@@ -108,6 +126,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')    
     result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
 
+    print ("PRINTING results", result)
     return result
 
 def train_multi_seed(args, train_df, eval_df, test_df, model_configs):
