@@ -3,7 +3,7 @@
     "num_of_seeds": 1,
     "initial_seed": 123,
     "epochs_per_seed": 1,
-    "train_batch_size": 8,
+    "train_batch_size": 4,
     "max_seq_length": 512,
     "models": [
         {
