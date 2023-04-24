@@ -127,12 +127,135 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     print ("PRINTING results", result)
     return result
 
+
+def train_multiclass_configmodel(args, train_df, eval_df, test_df, seed, model_configs):
+    # Training Arguments
+    model_args = ClassificationArgs()
+    model_args.manual_seed = seed
+    model_args.best_model_dir = os.path.join(args.output_dir, "best_model", "")
+    model_args.output_dir = args.output_dir
+    model_args.num_train_epochs = args.epochs_per_seed
+    model_args.fp16 = False
+    model_args.max_seq_length = args.max_seq_length
+    model_args.train_batch_size = args.train_batch_size
+    model_args.save_steps = -1
+    model_args.use_multiprocessing = False
+    if "do_lower_case" in model_configs:
+        model_args.do_lower_case = model_configs["do_lower_case"]
+    model_args.evaluate_during_training = True
+    model_args.save_best_model = True
+    model_args.save_eval_checkpoints = False
+    model_args.overwrite_output_dir = True
+
+    if not args.report_per_epoch:
+        model_args.save_model_every_epoch = False
+        model_args.no_save = True
+
+    # Load masked language model and tokenizer
+    model_name = "bert-base-uncased"
+    mlm_model = AutoModelForMaskedLM.from_pretrained(model_name)
+    mlm_tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    # Add masked language modeling to the training data
+    mlm_train_df = train_df.copy()
+    mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
+    mlm_train_df['labels'] = [-1]*len(mlm_train_df)
+
+    # Combine the original and masked dataframes
+    train_df = pd.concat([train_df, mlm_train_df])
+
+    # Create a MultiLabelClassificationModel
+    architecture = model_configs["architecture"]
+    pretrained_model = model_configs["model_path"]
+    config = AutoConfig.from_pretrained(pretrained_model, num_labels=args.num_labels)
+    model = AutoModelForSequenceClassification.from_pretrained(pretrained_model, config=config)
+
+    # Train the model
+    model_args.train_custom_parameters_only = True
+    train_dataset = MultiModalDataset(train_df, mlm_model, mlm_tokenizer)
+    model.train_model(train_dataset, eval_df=eval_df, args=model_args)
+    list_test_df = [str(i) for i in test_df['text'].values]
+
+    # Evaluating the model on test data
+    predictions, raw_outputs = model.predict(list_test_df)
+    truth = list(test_df.labels)
+    result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
+
+    # Collecting relevant results
+    result = {k: float(v) for k, v in result_np.items()}
+    result["acc"] = metrics.accuracy_score(truth, predictions)
+    result["prec_micro"] = metrics.precision_score(truth, predictions, average='micro')
+    result["prec_macro"] = metrics.precision_score(truth, predictions, average='macro')
+    result["rec_micro"] = metrics.recall_score(truth, predictions, average='micro')
+    result["rec_macro"] = metrics.recall_score(truth, predictions, average='macro')
+    result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')
+    result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
+
+    print("PRINTING results", result)
+    return result
+
+
+def train_multiclass_modelargs(args, train_df, eval_df, test_df, seed, model_configs):
+    # Training Arguments
+    model_args = MultiLabelClassificationArgs()
+    model_args.manual_seed = seed
+    model_args.best_model_dir = os.path.join(args.output_dir, "best_model", "")
+    model_args.output_dir =  args.output_dir
+    model_args.num_train_epochs = args.epochs_per_seed
+    model_args.fp16 = False
+    model_args.max_seq_length = args.max_seq_length
+    model_args.train_batch_size = args.train_batch_size
+    model_args.save_steps = -1
+    model_args.use_multiprocessing = False
+    if "do_lower_case" in model_configs:
+        model_args.do_lower_case = model_configs["do_lower_case"]
+    model_args.evaluate_during_training = True
+    model_args.save_best_model = True
+    model_args.save_eval_checkpoints = False
+    model_args.overwrite_output_dir = True
+
+    if not args.report_per_epoch:
+        model_args.save_model_every_epoch = False
+        model_args.no_save = True
+
+    # Create a MultiLabelClassificationModel
+    architecture = model_configs["architecture"]
+    pretrained_model = model_configs["model_path"]
+    model = MultiLabelClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
+
+    # Train the model
+    model.train_model(train_df, eval_df=eval_df)
+    list_test_df = [str(i) for i in test_df['text'].values]
+
+    # Evaluating the model on test data
+    predictions, raw_outputs = model.predict(list_test_df)
+    truth = list(test_df.labels)
+    result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
+
+    # Collecting relevant results
+    result = {k: float(v) for k, v in result_np.items()}
+
+    result["acc"] = metrics.accuracy_score(truth, predictions)
+    result["prec_micro"] = metrics.precision_score(truth, predictions, average='micro')
+    result["prec_macro"] = metrics.precision_score(truth, predictions, average='macro')
+    result["rec_micro"] = metrics.recall_score(truth, predictions, average='micro')
+    result["rec_macro"] = metrics.recall_score(truth, predictions, average='macro')
+    result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')
+    result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
+
+    print ("PRINTING results", result)
+    return result
+
+
+
 def train_multi_seed(args, train_df, eval_df, test_df, model_configs):
     init_seed = args.initial_seed
     for curr_seed in range(init_seed, init_seed + args.num_of_seeds):
         
         if args.task == "multiclass":
             result = train_multiclass(args, train_df, eval_df, test_df, curr_seed, model_configs)
+            result = train_multiclass_configmodel(args, train_df, eval_df, test_df, curr_seed, model_configs)
+            result = train_multiclass_modelargs(args, train_df, eval_df, test_df, curr_seed, model_configs)
         
         # Recording best results for a given seed
         log_filename = os.path.join("./logs/", args.dataset+"_best_results.json")
