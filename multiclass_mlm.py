@@ -98,7 +98,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     mlm_train_df['labels'] = [-1]*len(mlm_train_df)
 
     # Combine the original and masked dataframes
-    train_df = pd.concat([train_df, mlm_train_df])
+    # train_df = pd.concat([train_df, mlm_train_df])
 
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
