@@ -101,12 +101,12 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     print ("PRINTING mlm_train_df ******* ", mlm_train_df)
 
     # Reset index for both dataframes
-    train_df.reset_index(drop=True, inplace=True)
-    mlm_train_df.reset_index(drop=True, inplace=True)
+    # train_df.reset_index(drop=True, inplace=True)
+    # mlm_train_df.reset_index(drop=True, inplace=True)
 
     # Combine the original and masked dataframes
-    train_df = pd.concat([train_df, mlm_train_df], axis=0)
-    train_df.reset_index(drop=True, inplace=True)
+    # train_df = pd.concat([train_df, mlm_train_df], axis=0)
+    # train_df.reset_index(drop=True, inplace=True)
 
     print ("PRINTING train_df AFTER ****** ", train_df)
 
