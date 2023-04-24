@@ -1,5 +1,4 @@
 from simpletransformers.classification import MultiLabelClassificationModel, MultiLabelClassificationArgs, ClassificationModel, ClassificationArgs
-from simpletransformers.ner import NERModel, NERArgs
 from example_based import example_based_accuracy, example_based_recall, example_based_precision, example_based_f1
 from seqeval.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
 import argparse
