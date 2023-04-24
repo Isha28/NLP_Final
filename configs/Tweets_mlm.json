@@ -4,7 +4,7 @@
     "initial_seed": 123,
     "epochs_per_seed": 1,
     "train_batch_size": 4,
-    "max_seq_length": 512,
+    "max_seq_length": 128,
     "models": [
         {
             "model_name": "bert-base-cased",
