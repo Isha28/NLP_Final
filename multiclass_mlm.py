@@ -97,8 +97,8 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
     # mlm_train_df['labels'] = [-1]*len(mlm_train_df)
     # mlm_train_df['labels'] = None
-    mlm_train_df = mlm_train_df.drop('labels', axis=1)
-    
+    # mlm_train_df = mlm_train_df.drop('labels', axis=1)
+
     print ("PRINTING train_df ****** ", train_df)
     print ("PRINTING mlm_train_df ******* ", mlm_train_df)
 
