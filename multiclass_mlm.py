@@ -253,7 +253,7 @@ def train_multi_seed(args, train_df, eval_df, test_df, model_configs):
     for curr_seed in range(init_seed, init_seed + args.num_of_seeds):
         
         if args.task == "multiclass":
-            result = train_multiclass(args, train_df, eval_df, test_df, curr_seed, model_configs)
+            # result = train_multiclass(args, train_df, eval_df, test_df, curr_seed, model_configs)
             result = train_multiclass_configmodel(args, train_df, eval_df, test_df, curr_seed, model_configs)
             result = train_multiclass_modelargs(args, train_df, eval_df, test_df, curr_seed, model_configs)
         
