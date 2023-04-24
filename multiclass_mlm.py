@@ -88,7 +88,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
         model_args.no_save = True
 
     # Load masked language model and tokenizer
-    model_name = "bert-base-uncased"
+    model_name = "bert-base-cased"
     mlm_model = AutoModelForMaskedLM.from_pretrained(model_name)
     mlm_tokenizer = AutoTokenizer.from_pretrained(model_name)
 
