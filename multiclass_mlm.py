@@ -88,9 +88,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
         model_args.no_save = True
 
     # Load masked language model and tokenizer
-    model_name = model_configs["model_path"].split("/")[-1]
-    print ("PRINTING model_path",model_configs["model_path"])
-    print ("PRINTING model_name",model_name)
+    model_name = "bert-base-uncased"
     mlm_model = AutoModelForMaskedLM.from_pretrained(model_name)
     mlm_tokenizer = AutoTokenizer.from_pretrained(model_name)
 
