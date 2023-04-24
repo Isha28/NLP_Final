@@ -94,19 +94,19 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
 
     # Add masked language modeling to the training data
     mlm_train_df = train_df.copy()
-    mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
-    mlm_train_df['labels'] = [-1]*len(mlm_train_df)
+    # mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
+    # mlm_train_df['labels'] = [-1]*len(mlm_train_df)
 
     print ("PRINTING train_df ****** ", train_df)
     print ("PRINTING mlm_train_df ******* ", mlm_train_df)
 
     # Reset index for both dataframes
-    # train_df.reset_index(drop=True, inplace=True)
-    # mlm_train_df.reset_index(drop=True, inplace=True)
+    train_df.reset_index(drop=True, inplace=True)
+    mlm_train_df.reset_index(drop=True, inplace=True)
 
     # Combine the original and masked dataframes
-    # train_df = pd.concat([train_df, mlm_train_df], axis=0)
-    # train_df.reset_index(drop=True, inplace=True)
+    train_df = pd.concat([train_df, mlm_train_df], axis=0)
+    train_df.reset_index(drop=True, inplace=True)
 
     print ("PRINTING train_df AFTER ****** ", train_df)
 
