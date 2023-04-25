@@ -66,7 +66,7 @@ def report_per_epoch(args, test_df, seed, model_configs):
 def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
 
     # Load the pre-trained MLM model and tokenizer
-    print ("train_multiclass: model_configs["model_path"]", model_configs["model_path"])
+    print ("train_multiclass: model_configs[model_path]", model_configs["model_path"])
     tokenizer = AutoTokenizer.from_pretrained(model_configs["model_path"])
     mlm_model = AutoModelForMaskedLM.from_pretrained(model_configs["model_path"])
 
