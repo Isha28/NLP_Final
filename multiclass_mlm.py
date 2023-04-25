@@ -113,6 +113,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
     pretrained_model = model_configs["model_path"]
+    num_labels=4 #CHANGED
     model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
 
     # Train the model
