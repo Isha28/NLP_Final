@@ -9,8 +9,9 @@ import csv
 import os
 import json
 
-from transformers import AutoModelForMaskedLM, AutoTokenizer
-import torch
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+from simpletransformers.classification import MLMForSequenceClassification
+
 
 def report_per_epoch(args, test_df, seed, model_configs):
     list_of_results = []
@@ -63,6 +64,23 @@ def report_per_epoch(args, test_df, seed, model_configs):
         results_df.to_csv(outfile_report, mode='a', header=True, index=False)
 
 def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
+
+    # Load the pre-trained MLM model and tokenizer
+    print ("train_multiclass: model_configs["model_path"]", model_configs["model_path"])
+    tokenizer = AutoTokenizer.from_pretrained(model_configs["model_path"])
+    mlm_model = AutoModelForMaskedLM.from_pretrained(model_configs["model_path"])
+
+    # Tokenize the training data using the MLM tokenizer
+    train_text = train_df["text"].tolist()
+    train_encodings = tokenizer(train_text, truncation=True, padding=True, return_tensors="pt")
+
+    # Create a MLMForSequenceClassification model from the pre-trained model
+    mlm_classifier = MLMForSequenceClassification.from_pretrained(model_configs["model_path"], num_labels=args.num_labels)
+
+    # Fine-tune the MLM model on the training data
+    mlm_classifier.train_model(train_encodings["input_ids"], train_encodings["attention_mask"], labels=train_df["labels"])
+
+
     # Training Arguments
     model_args = ClassificationArgs()
     model_args.manual_seed = seed
@@ -87,34 +105,9 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
         model_args.save_model_every_epoch = False
         model_args.no_save = True
 
-    # Load masked language model and tokenizer
-    model_name = "cardiffnlp/twitter-roberta-base" #"bert-base-cased"
-    mlm_model = AutoModelForMaskedLM.from_pretrained(model_name)
-    mlm_tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    # Add masked language modeling to the training data
-    mlm_train_df = train_df.copy()
-    mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
-    mlm_train_df['labels'] = [3]*len(mlm_train_df)
-    model_args.ignore_label = 3
-
-    # print ("PRINTING train_df ****** ", train_df)
-    # print ("PRINTING mlm_train_df ******* ", mlm_train_df)
-
-    # Reset index for both dataframes
-    train_df.reset_index(drop=True, inplace=True)
-    mlm_train_df.reset_index(drop=True, inplace=True)
-
-    # Combine the original and masked dataframes
-    train_df = pd.concat([train_df, mlm_train_df], axis=0)
-    train_df.reset_index(drop=True, inplace=True)
-
-    # print ("PRINTING train_df AFTER ****** ", train_df)
-
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
-    pretrained_model = model_configs["model_path"]
-    # num_labels=4 #CHANGED
+    pretrained_model = mlm_classifier.model #model_configs["model_path"]
     model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
 
     # Train the model
@@ -138,8 +131,6 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
 
     print ("PRINTING results", result)
     return result
-
-
 
 def train_multi_seed(args, train_df, eval_df, test_df, model_configs):
     init_seed = args.initial_seed
