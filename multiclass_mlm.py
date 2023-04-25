@@ -96,6 +96,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     mlm_train_df = train_df.copy()
     mlm_train_df['text'] = mlm_train_df['text'].apply(lambda x: mlm_tokenizer.mask_token + ' ' + x)
     mlm_train_df['labels'] = [3]*len(mlm_train_df)
+    model_args.ignore_label = 3
 
     # print ("PRINTING train_df ****** ", train_df)
     # print ("PRINTING mlm_train_df ******* ", mlm_train_df)
