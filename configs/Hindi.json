@@ -1,0 +1,17 @@
+{
+    "task": "multiclass",
+    "num_of_seeds": 1,
+    "initial_seed": 123,
+    "epochs_per_seed": 3,
+    "train_batch_size": 8,
+    "max_seq_length": 512,
+    "models": [
+        {
+            "model_name": "ConfliBERT-scr-cased",
+            "model_path": "snowood1/ConfliBERT-scr-cased",
+            "architecture": "bert",
+            "do_lower_case": false
+        }
+    ]
+}
+

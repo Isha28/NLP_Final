@@ -10,8 +10,6 @@ import os
 import json
 
 from transformers import AutoTokenizer, AutoModelForMaskedLM
-from simpletransformers.classification import MLMForSequenceClassification
-
 
 def report_per_epoch(args, test_df, seed, model_configs):
     list_of_results = []
@@ -63,23 +61,68 @@ def report_per_epoch(args, test_df, seed, model_configs):
     else:
         results_df.to_csv(outfile_report, mode='a', header=True, index=False)
 
+# def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
+#     # Training Arguments
+#     model_args = ClassificationArgs()
+#     model_args.manual_seed = seed
+#     model_args.best_model_dir = os.path.join(args.output_dir, "best_model", "")
+#     model_args.output_dir =  args.output_dir
+#     model_args.num_train_epochs = args.epochs_per_seed
+#     model_args.fp16 = False
+#     model_args.max_seq_length = args.max_seq_length
+#     model_args.train_batch_size = args.train_batch_size
+#     model_args.save_steps = -1
+#     model_args.use_multiprocessing = False
+#     # model_args.save_model_every_epoch = False
+#     if "do_lower_case" in model_configs:
+#         model_args.do_lower_case = model_configs["do_lower_case"]
+#     model_args.evaluate_during_training = True
+#     model_args.save_best_model = True
+#     model_args.save_eval_checkpoints = False
+#     # model_args.no_save = True
+#     model_args.overwrite_output_dir = True
+
+#     if not args.report_per_epoch:
+#         model_args.save_model_every_epoch = False
+#         model_args.no_save = True
+
+#     # Create a MultiLabelClassificationModel
+#     architecture = model_configs["architecture"]
+#     pretrained_model = model_configs["model_path"]
+#     model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
+
+#     # Train the model
+#     model.train_model(train_df, eval_df=eval_df)
+#     list_test_df = [str(i) for i in test_df['text'].values]
+#     # Evaluating the model on test data
+#     predictions, raw_outputs = model.predict(list_test_df)
+#     truth = list(test_df.labels)
+#     result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
+    
+#     # Collecting relevant results
+#     result = {k: float(v) for k, v in result_np.items()}
+
+#     result["acc"] = metrics.accuracy_score(truth, predictions)
+#     result["prec_micro"] = metrics.precision_score(truth, predictions, average='micro')
+#     result["prec_macro"] = metrics.precision_score(truth, predictions, average='macro')
+#     result["rec_micro"] = metrics.recall_score(truth, predictions, average='micro')
+#     result["rec_macro"] = metrics.recall_score(truth, predictions, average='macro')
+#     result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')    
+#     result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
+
+#     print ("PRINTING results", result)
+#     return result
+
 def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
+    # Load the Hindi language model
+    hindi_tokenizer = AutoTokenizer.from_pretrained("l3cube-pune/marathi-tweets-bert")
+    hindi_model = AutoModelForMaskedLM.from_pretrained("l3cube-pune/marathi-tweets-bert")
 
-    # Load the pre-trained MLM model and tokenizer
-    print ("train_multiclass: model_configs[model_path]", model_configs["model_path"])
-    tokenizer = AutoTokenizer.from_pretrained(model_configs["model_path"])
-    mlm_model = AutoModelForMaskedLM.from_pretrained(model_configs["model_path"])
-
-    # Tokenize the training data using the MLM tokenizer
-    train_text = train_df["text"].tolist()
-    train_encodings = tokenizer(train_text, truncation=True, padding=True, return_tensors="pt")
-
-    # Create a MLMForSequenceClassification model from the pre-trained model
-    mlm_classifier = MLMForSequenceClassification.from_pretrained(model_configs["model_path"], num_labels=args.num_labels)
-
-    # Fine-tune the MLM model on the training data
-    mlm_classifier.train_model(train_encodings["input_ids"], train_encodings["attention_mask"], labels=train_df["labels"])
-
+    # Load the ConfiBERT model and replace its embedding layer with the Hindi language model's embedding layer
+    conflibert_model_path = model_configs["model_path"]
+    conflibert_tokenizer = AutoTokenizer.from_pretrained(conflibert_model_path)
+    conflibert_model = AutoModelForMaskedLM.from_pretrained(conflibert_model_path, num_labels=args.num_labels)
+    conflibert_model.roberta.embeddings = hindi_model.roberta.embeddings
 
     # Training Arguments
     model_args = ClassificationArgs()
@@ -107,8 +150,8 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
 
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
-    pretrained_model = mlm_classifier.model #model_configs["model_path"]
-    model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
+    pretrained_model = conflibert_model
+    model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args, tokenizer=hindi_tokenizer)
 
     # Train the model
     model.train_model(train_df, eval_df=eval_df)
@@ -126,7 +169,7 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     result["prec_macro"] = metrics.precision_score(truth, predictions, average='macro')
     result["rec_micro"] = metrics.recall_score(truth, predictions, average='micro')
     result["rec_macro"] = metrics.recall_score(truth, predictions, average='macro')
-    result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')    
+    result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')   
     result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
 
     print ("PRINTING results", result)
