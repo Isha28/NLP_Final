@@ -7,8 +7,8 @@
     "max_seq_length": 128,
     "models": [
         {
-            "model_name": "bert-base-cased",
-            "model_path": "bert-base-cased",
+            "model_name": "ConfliBERT-scr-cased",
+            "model_path": "snowood1/ConfliBERT-scr-cased",
             "architecture": "bert",
             "do_lower_case": false
         }
