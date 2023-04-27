@@ -43,18 +43,19 @@
 # # You can now use the "snowood1/ConfliBERT-scr-uncased" model with the fine-tuned masked language modeling head to generate predictions on your downstream task
 # conflibert_model.save_pretrained("finetuned_conflibert")
 
-from transformers import RobertaForMaskedLM, RobertaLMHead
+import torch
+from transformers import RobertaForMaskedLM
 
-# Load the pretrained models
 conflibert_model_name = "snowood1/ConfliBERT-scr-uncased"
 conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
-model_name = "cardiffnlp/twitter-roberta-base"
-model = RobertaForMaskedLM.from_pretrained(model_name)
+model = RobertaForMaskedLM.from_pretrained("cardiffnlp/twitter-roberta-base")
 
-# Create a new lm_head layer with the correct size
-new_lm_head = RobertaLMHead(model.config)
-new_lm_head.weight = model.lm_head.dense.weight[:conflibert_model.config.vocab_size]
-new_lm_head.bias = model.lm_head.dense.bias[:conflibert_model.config.vocab_size]
+# Create a new linear layer with the same size as the lm_head layer of the "cardiffnlp/twitter-roberta-base" model
+new_lm_head = torch.nn.Linear(model.config.hidden_size, model.config.vocab_size)
 
-# Replace the lm_head layer in the conflibert_model with the new lm_head layer
+# Copy the weights of the lm_head layer of the "cardiffnlp/twitter-roberta-base" model to the new linear layer
+new_lm_head.weight = model.lm_head.decoder.weight
+new_lm_head.bias = model.lm_head.decoder.bias
+
+# Replace the lm_head layer of the "snowood1/ConfliBERT-scr-uncased" model with the new linear layer
 conflibert_model.lm_head = new_lm_head
