@@ -16,7 +16,7 @@ conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
 from datasets import load_dataset
 dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
 text = dataset['train']['text']
-inputs = tokenizer(text, padding=True, truncation=True, max_length=128, return_tensors='pt')
+inputs = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
 inputs = inputs['input_ids']
 
 # Fine-tune the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset using the masked language modeling objective
