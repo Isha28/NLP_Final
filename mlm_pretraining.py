@@ -119,67 +119,143 @@
 # print ("DONE!!!!")
 
 
-import torch
-from transformers import RobertaTokenizer, RobertaForMaskedLM, LineByLineTextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
+#fails because of GPU
 
-# Define your 5 training sentences
-sentences = ["I love to eat pizza",
-             "The dog ran after the ball",
-             "She is studying for her exam",
-             "He enjoys playing video games",
-             "The sun is shining brightly today"]
+# import torch
+# from transformers import RobertaTokenizer, RobertaForMaskedLM, LineByLineTextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
 
-# Save the sentences to a text file
-with open('training_data.txt', 'w') as f:
-    for sentence in sentences:
-        f.write(sentence + '\n')
+# # Define your 5 training sentences
+# sentences = ["I love to eat pizza",
+#              "The dog ran after the ball",
+#              "She is studying for her exam",
+#              "He enjoys playing video games",
+#              "The sun is shining brightly today"]
 
-print ("PRINT: Created text file for training")
+# # Save the sentences to a text file
+# with open('training_data.txt', 'w') as f:
+#     for sentence in sentences:
+#         f.write(sentence + '\n')
 
-# Tokenize the sentences
-tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
+# print ("PRINT: Created text file for training")
 
-# Create a LineByLineTextDataset
-dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path='training_data.txt', block_size=128)
+# # Tokenize the sentences
+# tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
 
-# Mask some tokens in the input
-mask_token_index = tokenizer.convert_tokens_to_ids(tokenizer.mask_token)
-inputs = dataset[0]['input_ids']
-inputs[2] = mask_token_index
+# # Create a LineByLineTextDataset
+# dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path='training_data.txt', block_size=128)
 
-# Create a DataCollatorForLanguageModeling
-data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
+# # Mask some tokens in the input
+# mask_token_index = tokenizer.convert_tokens_to_ids(tokenizer.mask_token)
+# inputs = dataset[0]['input_ids']
+# inputs[2] = mask_token_index
 
-print ("PRINT: Created data collator")
+# # Create a DataCollatorForLanguageModeling
+# data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
 
-# Load the pre-trained model
-model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
+# print ("PRINT: Created data collator")
 
-print ("PRINT: Created model")
+# # Load the pre-trained model
+# model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
 
-# Define TrainingArguments
-training_args = TrainingArguments(
-    output_dir='./results',
-    overwrite_output_dir=True,
-    num_train_epochs=1,
-    per_device_train_batch_size=32,
-    save_steps=10_000,
-    save_total_limit=2
-)
+# print ("PRINT: Created model")
 
-# Create a Trainer
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=dataset,
-    data_collator=data_collator
-)
+# # Define TrainingArguments
+# training_args = TrainingArguments(
+#     output_dir='./results',
+#     overwrite_output_dir=True,
+#     num_train_epochs=1,
+#     per_device_train_batch_size=32,
+#     save_steps=10_000,
+#     save_total_limit=2
+# )
 
-print ("PRINT: Created trainer")
+# # Create a Trainer
+# trainer = Trainer(
+#     model=model,
+#     args=training_args,
+#     train_dataset=dataset,
+#     data_collator=data_collator
+# )
 
-# Start training
-trainer.train()
+# print ("PRINT: Created trainer")
 
-print ("PRINT: Completed training")
+# # Start training
+# trainer.train()
 
+# print ("PRINT: Completed training")
+
+import tensorflow as tf
+import numpy as np
+from transformers import RobertaTokenizer, TFRobertaForMaskedLM
+
+# Load the tokenizer and model
+tokenizer = RobertaTokenizer.from_pretrained("snowood1/ConfliBERT-scr-uncased")
+model = TFRobertaForMaskedLM.from_pretrained("snowood1/ConfliBERT-scr-uncased")
+
+# Load the data
+with open('corpus.txt', 'r', encoding='utf-8') as f:
+    text = f.read()
+
+# Tokenize the data
+encoded = tokenizer(text, padding=True, truncation=True, return_tensors='tf')
+
+# Mask some tokens
+input_ids = encoded['input_ids']
+attention_mask = encoded['attention_mask']
+
+# Mask 15% of the tokens
+mask_prob = 0.15
+mask_indices = np.random.binomial(1, mask_prob, size=input_ids.shape) == 1
+mask_indices &= attention_mask  # ignore the padded tokens
+
+# Replace the selected tokens with the [MASK] token
+replace_prob = 0.8  # probability of replacing the masked token with [MASK]
+keep_prob = 1 - replace_prob  # probability of keeping the original token
+replace_indices = np.random.binomial(1, replace_prob, size=input_ids.shape) == 1
+keep_indices = np.logical_not(replace_indices)
+
+input_ids[mask_indices & replace_indices] = tokenizer.mask_token_id
+input_ids[mask_indices & keep_indices] = input_ids[mask_indices & keep_indices]
+
+# Add the special tokens
+inputs = tokenizer.prepare_for_model(input_ids, attention_mask=attention_mask)
+
+# Define the loss function and optimizer
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+optimizer = tf.keras.optimizers.Adam(learning_rate=5e-5)
+
+# Define the training loop
+batch_size = 32
+num_epochs = 10
+num_train_steps = (len(text) // batch_size) * num_epochs
+
+for epoch in range(num_epochs):
+    print(f"Epoch {epoch + 1}")
+    epoch_loss = 0
+
+    for i in range(0, len(text), batch_size):
+        # Prepare the batch
+        batch = {k: v[i:i+batch_size] for k, v in inputs.items()}
+
+        # Compute the loss
+        with tf.GradientTape() as tape:
+            logits = model(batch['input_ids'], attention_mask=batch['attention_mask'], token_type_ids=batch['token_type_ids'])[0]
+            loss = loss_fn(batch['input_ids'][:, 1:], logits[:, :-1])
+
+        # Compute the gradients
+        grads = tape.gradient(loss, model.trainable_weights)
+
+        # Update the model parameters
+        optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+        epoch_loss += loss
+
+        if (i // batch_size) % 100 == 0:
+            print(f"Step {i // batch_size}/{num_train_steps // batch_size}, Loss: {loss.numpy()}")
+
+    print(f"Epoch Loss: {epoch_loss.numpy()}")
+
+# Save the trained model
+model.save_pretrained("confliclm")
+tokenizer.save_pretrained("confliclm")
 
