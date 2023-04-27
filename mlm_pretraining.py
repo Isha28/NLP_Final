@@ -141,7 +141,7 @@ inputs['input_ids'][0][2] = mask_token_index
 inputs['attention_mask'][0][2] = 1
 
 # Create a LineByLineTextDataset
-dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path=None, block_size=128, overwrite_cache=False)
+dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path=None, block_size=128)
 
 # Create a DataCollatorForLanguageModeling
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
