@@ -59,3 +59,5 @@ new_lm_head.bias = model.lm_head.decoder.bias
 
 # Replace the lm_head layer of the "snowood1/ConfliBERT-scr-uncased" model with the new linear layer
 conflibert_model.lm_head = new_lm_head
+
+print ("DONE!!!!")
