@@ -40,6 +40,7 @@ trainer = Trainer(
     args=training_args,
     train_dataset=dataset,
     data_collator=data_collator,
+    use_wandb=False,
 )
 
 # Train the model
