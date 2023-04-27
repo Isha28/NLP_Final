@@ -119,63 +119,52 @@
 # print ("DONE!!!!")
 
 
-from transformers import RobertaTokenizer, RobertaForMaskedLM, AdamW
-from torch.utils.data import Dataset, DataLoader
 import torch
+from transformers import RobertaTokenizer, RobertaForMaskedLM, LineByLineTextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
 
-# Define a custom dataset class that loads input data from a list
-class MyDataset(Dataset):
-    def __init__(self, data):
-        self.data = data
+tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
+model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
 
-    def __getitem__(self, index):
-        input_text = self.data[index]
-        input_ids = tokenizer.encode(input_text, padding='max_length', truncation=True, max_length=128)
-        return input_ids
+# Define your 5 training sentences
+sentences = ["I love to eat pizza",
+             "The dog ran after the ball",
+             "She is studying for her exam",
+             "He enjoys playing video games",
+             "The sun is shining brightly today"]
 
-    def __len__(self):
-        return len(self.data)
+# Tokenize the sentences
+inputs = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt")
 
-# Define the input data
-data = [
-    "The quick brown fox jumps over the lazy [MASK].",
-    "I am the [MASK].",
-    "To be or not to [MASK], that is the question.",
-    "All work and no [MASK] makes Jack a dull boy.",
-    "In the beginning, God created the [MASK] and the earth.",
-]
+# Mask some tokens in the input
+mask_token_index = tokenizer.convert_tokens_to_ids(tokenizer.mask_token)
+inputs['input_ids'][0][2] = mask_token_index
+inputs['attention_mask'][0][2] = 1
 
-# Download and load the "cardiffnlp/twitter-roberta-base" model
-base_model_name = "cardiffnlp/twitter-roberta-base"
-tokenizer = RobertaTokenizer.from_pretrained(base_model_name)
-base_model = RobertaForMaskedLM.from_pretrained(base_model_name)
+# Create a LineByLineTextDataset
+dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path=None, block_size=128, overwrite_cache=False)
 
-# Download and load the "snowood1/ConfliBERT-scr-uncased" model
-conf_model_name = "snowood1/ConfliBERT-scr-uncased"
-conf_model = RobertaForMaskedLM.from_pretrained(conf_model_name)
+# Create a DataCollatorForLanguageModeling
+data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
 
-# Preprocess the input data using the tokenizer
-dataset = MyDataset(data)
-dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+# Define TrainingArguments
+training_args = TrainingArguments(
+    output_dir='./results',
+    overwrite_output_dir=True,
+    num_train_epochs=1,
+    per_device_train_batch_size=32,
+    save_steps=10_000,
+    save_total_limit=2
+)
 
-# Fine-tune the "snowood1/ConfliBERT-scr-uncased" model on the input dataset
-optimizer = AdamW(conf_model.parameters(), lr=1e-5)
-conf_model.train()
-for epoch in range(3):
-    for batch in dataloader:
-        optimizer.zero_grad()
-        batch = torch.stack(batch).to(torch.int64)
-        with torch.no_grad():
-            conf_outputs = conf_model(batch)
-            conf_prediction = conf_outputs.logits.argmax(dim=-1)
-        batch[:, 6] = conf_prediction
-        outputs = base_model(batch, labels=batch)
-        loss = outputs.loss
-        loss.backward()
-        optimizer.step()
+# Create a Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset,
+    data_collator=data_collator
+)
 
-# Once you have fine-tuned the "snowood1/ConfliBERT-scr-uncased" model on the input dataset, you can save the weights of the model to disk
-conf_model.save_pretrained("finetuned_conf_model")
+# Start training
+trainer.train()
 
-print ("DONE!!!!")
 
