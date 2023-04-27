@@ -122,9 +122,6 @@
 import torch
 from transformers import RobertaTokenizer, RobertaForMaskedLM, LineByLineTextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
 
-tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
-model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
-
 # Define your 5 training sentences
 sentences = ["I love to eat pizza",
              "The dog ran after the ball",
@@ -133,6 +130,7 @@ sentences = ["I love to eat pizza",
              "The sun is shining brightly today"]
 
 # Tokenize the sentences
+tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
 inputs = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt")
 
 # Mask some tokens in the input
@@ -141,10 +139,13 @@ inputs['input_ids'][0][2] = mask_token_index
 inputs['attention_mask'][0][2] = 1
 
 # Create a LineByLineTextDataset
-dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path=None, block_size=128)
+dataset = LineByLineTextDataset(tokenizer=tokenizer, text_list=inputs['input_ids'], block_size=128)
 
 # Create a DataCollatorForLanguageModeling
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
+
+# Load the pre-trained model
+model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
 
 # Define TrainingArguments
 training_args = TrainingArguments(
@@ -166,5 +167,6 @@ trainer = Trainer(
 
 # Start training
 trainer.train()
+
 
 
