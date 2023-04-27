@@ -14,7 +14,7 @@ conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
 # Preprocess the dataset, tokenize the text and apply the mask for the masked language modeling task
 # Here, we will use the Hugging Face Datasets library to download and preprocess the dataset
 from datasets import load_dataset
-dataset = load_dataset('wikitext') #, 'wikitext-2-raw-v1'
+dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
 text = dataset['train']['text']
 inputs = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
 inputs = inputs['input_ids']
