@@ -224,8 +224,8 @@ loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 optimizer = tf.keras.optimizers.Adam(learning_rate=5e-5)
 
 # Define the training loop
-batch_size = 32
-num_epochs = 10
+batch_size = 8
+num_epochs = 1
 num_train_steps = (len(text) // batch_size) * num_epochs
 
 for epoch in range(num_epochs):
@@ -257,4 +257,5 @@ for epoch in range(num_epochs):
 # Save the trained model
 model.save_pretrained("confliclm")
 tokenizer.save_pretrained("confliclm")
+print ("DONE!!!!")
 
