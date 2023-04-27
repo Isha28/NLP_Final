@@ -122,6 +122,12 @@ def train_multiclass(args, train_df, eval_df, test_df, seed, model_configs):
     conflibert_model_path = model_configs["model_path"]
     conflibert_tokenizer = AutoTokenizer.from_pretrained(conflibert_model_path)
     conflibert_model = AutoModelForMaskedLM.from_pretrained(conflibert_model_path, num_labels=args.num_labels)
+    
+    for attr in dir(conflibert_model):
+        print("conflibert_model.%s = %r" % (attr, getattr(conflibert_model, attr)))
+    for attr in dir(hindi_model):
+        print("hindi_model.%s = %r" % (attr, getattr(hindi_model, attr)))
+
     conflibert_model.roberta.embeddings = hindi_model.roberta.embeddings
 
     # Training Arguments
