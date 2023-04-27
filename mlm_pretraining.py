@@ -1,40 +1,40 @@
-from transformers import RobertaTokenizer, RobertaForMaskedLM, AdamW
-import torch
+# from transformers import RobertaTokenizer, RobertaForMaskedLM, AdamW
+# import torch
 
-# Download and load the "cardiffnlp/twitter-roberta-base" model
-model_name = "cardiffnlp/twitter-roberta-base"
-tokenizer = RobertaTokenizer.from_pretrained(model_name)
-model = RobertaForMaskedLM.from_pretrained(model_name)
+# # Download and load the "cardiffnlp/twitter-roberta-base" model
+# model_name = "cardiffnlp/twitter-roberta-base"
+# tokenizer = RobertaTokenizer.from_pretrained(model_name)
+# model = RobertaForMaskedLM.from_pretrained(model_name)
 
-# Download and load the "snowood1/ConfliBERT-scr-uncased" model
-conflibert_model_name = "snowood1/ConfliBERT-scr-uncased"
-conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
+# # Download and load the "snowood1/ConfliBERT-scr-uncased" model
+# conflibert_model_name = "snowood1/ConfliBERT-scr-uncased"
+# conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
 
-# Download the dataset you want to use for pretraining your model
-# Preprocess the dataset, tokenize the text and apply the mask for the masked language modeling task
-# Here, we will use the Hugging Face Datasets library to download and preprocess the dataset
-from datasets import load_dataset
-dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
-text = dataset['train']['text']
-inputs = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
-inputs = inputs['input_ids']
+# # Download the dataset you want to use for pretraining your model
+# # Preprocess the dataset, tokenize the text and apply the mask for the masked language modeling task
+# # Here, we will use the Hugging Face Datasets library to download and preprocess the dataset
+# from datasets import load_dataset
+# dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
+# text = dataset['train']['text']
+# inputs = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
+# inputs = inputs['input_ids']
 
-# Fine-tune the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset using the masked language modeling objective
-# During fine-tuning, you can either use the same hyperparameters as the "cardiffnlp/twitter-roberta-base" model or experiment with different ones to optimize the performance of your model
-optimizer = AdamW(model.parameters(), lr=1e-5)
-model.train()
-for epoch in range(1): #3
-    for batch in inputs.split(256):
-        optimizer.zero_grad()
-        outputs = model(batch, labels=batch)
-        loss = outputs.loss
-        loss.backward()
-        optimizer.step()
+# # Fine-tune the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset using the masked language modeling objective
+# # During fine-tuning, you can either use the same hyperparameters as the "cardiffnlp/twitter-roberta-base" model or experiment with different ones to optimize the performance of your model
+# optimizer = AdamW(model.parameters(), lr=1e-5)
+# model.train()
+# for epoch in range(1): #3
+#     for batch in inputs.split(256):
+#         optimizer.zero_grad()
+#         outputs = model(batch, labels=batch)
+#         loss = outputs.loss
+#         loss.backward()
+#         optimizer.step()
 
-# Once you have fine-tuned the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset, you can save the weights of the model to disk
-model.save_pretrained("finetuned_cardiffnlp")
+# # Once you have fine-tuned the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset, you can save the weights of the model to disk
+# model.save_pretrained("finetuned_cardiffnlp")
 
-print ("DONE!!!!")
+# print ("DONE!!!!")
 
 # # Load the saved fine-tuned model weights
 # model = RobertaForMaskedLM.from_pretrained("cardiffnlp/twitter-roberta-base")
@@ -64,3 +64,57 @@ print ("DONE!!!!")
 # conflibert_model.lm_head = new_lm_head
 
 # print ("DONE!!!!")
+
+
+from transformers import RobertaTokenizer, RobertaForMaskedLM, AdamW
+from torch.utils.data import Dataset, DataLoader
+import torch
+
+# Download and load the "cardiffnlp/twitter-roberta-base" model
+model_name = "cardiffnlp/twitter-roberta-base"
+tokenizer = RobertaTokenizer.from_pretrained(model_name)
+model = RobertaForMaskedLM.from_pretrained(model_name)
+
+# Download and load the "snowood1/ConfliBERT-scr-uncased" model
+conflibert_model_name = "snowood1/ConfliBERT-scr-uncased"
+conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
+
+# Define a custom dataset class that loads input data from disk
+class WikiTextDataset(Dataset):
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.lines = []
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                self.lines.append(line.strip())
+
+    def __getitem__(self, index):
+        line = self.lines[index]
+        input_ids = tokenizer.encode(line, padding='max_length', truncation=True, max_length=128)
+        return input_ids
+
+    def __len__(self):
+        return len(self.lines)
+
+# Load the dataset using a data loader
+dataset = WikiTextDataset('wikitext-2-raw/wiki.train.raw')
+dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+
+# Fine-tune the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset using the masked language modeling objective
+# During fine-tuning, you can either use the same hyperparameters as the "cardiffnlp/twitter-roberta-base" model or experiment with different ones to optimize the performance of your model
+optimizer = AdamW(model.parameters(), lr=1e-5)
+model.train()
+for epoch in range(1): #3
+    for batch in dataloader:
+        optimizer.zero_grad()
+        batch = torch.stack(batch).to(torch.int64)
+        outputs = model(batch, labels=batch)
+        loss = outputs.loss
+        loss.backward()
+        optimizer.step()
+
+# Once you have fine-tuned the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset, you can save the weights of the model to disk
+model.save_pretrained("finetuned_cardiffnlp")
+
+print ("DONE!!!!")
+
