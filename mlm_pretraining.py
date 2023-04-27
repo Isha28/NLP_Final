@@ -129,17 +129,21 @@ sentences = ["I love to eat pizza",
              "He enjoys playing video games",
              "The sun is shining brightly today"]
 
+# Save the sentences to a text file
+with open('training_data.txt', 'w') as f:
+    for sentence in sentences:
+        f.write(sentence + '\n')
+
 # Tokenize the sentences
 tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
-inputs = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt")
+
+# Create a LineByLineTextDataset
+dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path='training_data.txt', block_size=128)
 
 # Mask some tokens in the input
 mask_token_index = tokenizer.convert_tokens_to_ids(tokenizer.mask_token)
-inputs['input_ids'][0][2] = mask_token_index
-inputs['attention_mask'][0][2] = 1
-
-# Create a LineByLineTextDataset
-dataset = LineByLineTextDataset(tokenizer=tokenizer, text_list=inputs['input_ids'], block_size=128)
+inputs = dataset[0]['input_ids']
+inputs[2] = mask_token_index
 
 # Create a DataCollatorForLanguageModeling
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
@@ -167,6 +171,5 @@ trainer = Trainer(
 
 # Start training
 trainer.train()
-
 
 
