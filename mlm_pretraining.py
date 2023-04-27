@@ -134,6 +134,8 @@ with open('training_data.txt', 'w') as f:
     for sentence in sentences:
         f.write(sentence + '\n')
 
+print ("PRINT: Created text file for training")
+
 # Tokenize the sentences
 tokenizer = RobertaTokenizer.from_pretrained('cardiffnlp/twitter-roberta-base')
 
@@ -148,8 +150,12 @@ inputs[2] = mask_token_index
 # Create a DataCollatorForLanguageModeling
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
 
+print ("PRINT: Created data collator")
+
 # Load the pre-trained model
 model = RobertaForMaskedLM.from_pretrained('snowood1/ConfliBERT-scr-uncased')
+
+print ("PRINT: Created model")
 
 # Define TrainingArguments
 training_args = TrainingArguments(
@@ -169,7 +175,11 @@ trainer = Trainer(
     data_collator=data_collator
 )
 
+print ("PRINT: Created trainer")
+
 # Start training
 trainer.train()
+
+print ("PRINT: Completed training")
 
 
