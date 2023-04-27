@@ -186,11 +186,10 @@
 
 import tensorflow as tf
 import numpy as np
-from transformers import RobertaTokenizer, TFRobertaForMaskedLM
+from transformers import AutoTokenizer, AutoModelForMaskedLM
 
-# Load the tokenizer and model
-tokenizer = RobertaTokenizer.from_pretrained("snowood1/ConfliBERT-scr-uncased")
-model = TFRobertaForMaskedLM.from_pretrained("snowood1/ConfliBERT-scr-uncased")
+tokenizer = AutoTokenizer.from_pretrained("snowood1/ConfliBERT-scr-uncased")
+model = AutoModelForMaskedLM.from_pretrained("snowood1/ConfliBERT-scr-uncased")
 
 # Load the data
 with open('corpus.txt', 'r', encoding='utf-8') as f:
