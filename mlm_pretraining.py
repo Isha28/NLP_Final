@@ -13,7 +13,7 @@ conflibert_model = RobertaForMaskedLM.from_pretrained(conflibert_model_name)
 # Download the dataset you want to use for pretraining your model
 # Preprocess the dataset, tokenize the text and apply the mask for the masked language modeling task
 # Here, we will use the Hugging Face Datasets library to download and preprocess the dataset
-# from datasets import load_dataset
+from datasets import load_dataset
 dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
 text = dataset['train']['text']
 inputs = tokenizer(text, padding=True, truncation=True, max_length=128, return_tensors='pt')
@@ -33,6 +33,8 @@ for epoch in range(1): #3
 
 # Once you have fine-tuned the "cardiffnlp/twitter-roberta-base" model on your preprocessed dataset, you can save the weights of the model to disk
 model.save_pretrained("finetuned_cardiffnlp")
+
+print ("DONE!!!!")
 
 # # Load the saved fine-tuned model weights
 # model = RobertaForMaskedLM.from_pretrained("cardiffnlp/twitter-roberta-base")
