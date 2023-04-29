@@ -205,7 +205,7 @@ def train_binary(args, train_df, eval_df, test_df, seed, model_configs):
     # Create a MultiLabelClassificationModel
     architecture = model_configs["architecture"]
     pretrained_model = model_configs["model_path"]
-    model = ClassificationModel(architecture, pretrained_model, num_labels=args.num_labels, args=model_args)
+    model = ClassificationModel(architecture, pretrained_model, args=model_args)
 
     # Train the model
     model.train_model(train_df, eval_df=eval_df)
