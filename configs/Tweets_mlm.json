@@ -1,14 +1,14 @@
 {
-    "task": "multiclass",
+    "task": "binary",
     "num_of_seeds": 1,
     "initial_seed": 123,
-    "epochs_per_seed": 5,
+    "epochs_per_seed": 1,
     "train_batch_size": 8,
     "max_seq_length": 128,
     "models": [
         {
-            "model_name": "ConfliBERT-scr-cased",
-            "model_path": "snowood1/ConfliBERT-scr-cased",
+            "model_name": "Masked-2KTweets-ConfliBERT-scr-cased",
+            "model_path": "ipadmanaban/Masked-2KTweets-ConfliBERT-scr-cased",
             "architecture": "bert",
             "do_lower_case": false
         }
