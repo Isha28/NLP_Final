@@ -2,16 +2,57 @@
     "task": "binary",
     "num_of_seeds": 1,
     "initial_seed": 123,
-    "epochs_per_seed": 1,
+    "epochs_per_seed": 5,
     "train_batch_size": 8,
     "max_seq_length": 128,
     "models": [
+        {
+            "model_name": "Masked-2KTweets-ConfliBERT-scr-cased",
+            "model_path": "ipadmanaban/Masked-2KTweets-ConfliBERT-scr-cased",
+            "architecture": "bert",
+            "do_lower_case": false
+        },
+        {
+            "model_name": "Masked-2KTweets-ConfliBERT-scr-uncased",
+            "model_path": "ipadmanaban/Masked-2KTweets-ConfliBERT-scr-uncased",
+            "architecture": "bert",
+            "do_lower_case": true
+        },
+        {
+            "model_name": "Masked-2KTweets-ConfliBERT-cont-cased",
+            "model_path": "ipadmanaban/Masked-2KTweets-ConfliBERT-cont-cased",
+            "architecture": "bert",
+            "do_lower_case": false
+        },
+        {
+            "model_name": "Masked-2KTweets-ConfliBERT-cont-uncased",
+            "model_path": "ipadmanaban/Masked-2KTweets-ConfliBERT-cont-uncased",
+            "architecture": "bert",
+            "do_lower_case": true
+        },
         {
             "model_name": "ConfliBERT-scr-cased",
             "model_path": "snowood1/ConfliBERT-scr-cased",
             "architecture": "bert",
             "do_lower_case": false
+        },
+        {
+            "model_name": "ConfliBERT-scr-uncased",
+            "model_path": "snowood1/ConfliBERT-scr-uncased",
+            "architecture": "bert",
+            "do_lower_case": true
+        },
+        {
+            "model_name": "ConfliBERT-cont-cased",
+            "model_path": "snowood1/ConfliBERT-cont-cased",
+            "architecture": "bert",
+            "do_lower_case": false
+        },
+        {
+            "model_name": "ConfliBERT-cont-uncased",
+            "model_path": "snowood1/ConfliBERT-cont-uncased",
+            "architecture": "bert",
+            "do_lower_case": true
         }
     ]
 }
-
