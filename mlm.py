@@ -84,21 +84,23 @@ def report_per_epoch(args, test_df, seed, model_configs):
                 # Create a MultiLabelClassificationModel
                 model = ClassificationModel(model_configs["architecture"], checkpoint_dir)
 
+                list_test_df = [str(i) for i in test_df['text'].values]
+
                 # Evaluating the model on test data
+                predictions, raw_outputs = model.predict(list_test_df)
+                truth = list(test_df.labels)
                 result_np, model_outputs, wrong_predictions = model.eval_model(test_df)
 
                 # Collecting relevant results
-                result = {}
-                for k, v in result_np.items():
-                    if k in ["mcc", "auroc", "auprc", "eval_loss"]:
-                        result[k] = float(v)
-                    else:
-                        result[k] = int(v)
+                result = {k: float(v) for k, v in result_np.items()}
 
-                result["acc"] = float((result["tp"]+result["tn"])/(result["tp"]+result["tn"]+result["fp"]+result["fn"]))
-                result["prec"] = float((result["tp"])/(result["tp"]+result["fp"]))
-                result["rec"] = float((result["tp"])/(result["tp"]+result["fn"]))
-                result["f1"] = float(2*(result["prec"]*result["rec"])/(result["prec"]+result["rec"]))
+                result["acc"] = metrics.accuracy_score(truth, predictions)
+                result["prec_micro"] = metrics.precision_score(truth, predictions, average='micro')
+                result["prec_macro"] = metrics.precision_score(truth, predictions, average='macro')
+                result["rec_micro"] = metrics.recall_score(truth, predictions, average='micro')
+                result["rec_macro"] = metrics.recall_score(truth, predictions, average='macro')
+                result["f1_micro"] = metrics.f1_score(truth, predictions, average='micro')
+                result["f1_macro"] = metrics.f1_score(truth, predictions, average='macro')
 
         
             elif args.task == "multiclass":
