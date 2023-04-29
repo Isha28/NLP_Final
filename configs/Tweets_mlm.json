@@ -4,7 +4,7 @@
     "initial_seed": 123,
     "epochs_per_seed": 1,
     "train_batch_size": 8,
-    "max_seq_length": 128,
+    "max_seq_length": 32,
     "models": [
         {
             "model_name": "Masked-2KTweets-ConfliBERT-scr-cased",
