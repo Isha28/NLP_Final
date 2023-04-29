@@ -150,6 +150,7 @@ def report_per_epoch(args, test_df, seed, model_configs):
 
 def train_multi_seed(args, train_df, eval_df, test_df, model_configs):
 
+    print ("####################### model_configs[model_name]", model_configs["model_name"])
     init_seed = args.initial_seed
     for curr_seed in range(init_seed, init_seed + args.num_of_seeds):
         
