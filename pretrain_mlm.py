@@ -10,6 +10,7 @@ def pretrain_conflibert(model_path):
 
     df = pd.read_csv('new_tweets_mlm.tsv', sep='\t')
     text = df.values.tolist()
+    print("PRINT : Input Texts", text[:5])
     
     inputs = tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding='max_length')
 
@@ -46,9 +47,9 @@ def pretrain_conflibert(model_path):
 
 def main():
     pretrain_conflibert('snowood1/ConfliBERT-scr-cased')
-    # pretrain_conflibert("ConfliBERT-scr-uncased") #change
-    # pretrain_conflibert("ConfliBERT-cont-cased")
-    # pretrain_conflibert("ConfliBERT-cont-uncased")
+    # pretrain_conflibert("snowood1/ConfliBERT-scr-uncased") #change
+    # pretrain_conflibert("snowood1/ConfliBERT-cont-cased")
+    # pretrain_conflibert("snowood1/ConfliBERT-cont-uncased")
 
 if __name__ == "__main__":
     main()
