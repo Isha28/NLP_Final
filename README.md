@@ -13,7 +13,10 @@ pip install scikit-learn==0.24.2
 pip install simpletransformers
 pip install pandas
 
-Run ./setup.sh 
+Run the setup file:
+```
+bash setup.sh 
+```
 
 
 ## To collect Tweets from Twitter using API:
@@ -25,18 +28,23 @@ Add Twitter API credentials in the get_tweets.py file for below.
   <li>access_token_secret = "..."</li>
 </ol>
 
-After updating these details, run python get_tweets.py to collect tweets by giving appropriate search_words in file.
+After updating these details, run get_tweets file to collect tweets by giving appropriate search_words in file.
+```
+python get_tweets.py
+```
 
 We collected Tweets manually from Twitter for political violence and hate speech classes as the authorization to use API was restricted from Twitter.
 
 
 ## To preprocess tweets 
-Run the file tweet_preprocess.ipynb where input file is the collected and annotated input tweets dataset containing political violence/hate speech. The output files are preprocessed and split train, test and dev files.
+Run the file tweet_preprocess where input file is the collected and annotated input tweets dataset containing political violence/hate speech. The output files are preprocessed and split train, test and dev files.
 
 
 ## To pretrain ConfliBERT for Masked Language Modeling
 The pretrain_mlm file below takes unlabeled tweets data as input to pretrain.
+```
 CUDA_VISIBLE_DEVICES=0 python pretrain_mlm.py
+```
 
 This will save the output bin files of four versions of pretrained ConfliBERT MLM models to local disk. We have uploaded the output bin, config and vocab files in huggingface to use them in performance evaluation of classification tasks.
 
@@ -85,13 +93,16 @@ Create a new json file with the same dataset name as above in configs folder. Th
 
 The above is a sample with one flavor of BERT, ConfliBERT and proposed ConfliBERT-MLM. To run classification task, dataset directory name must be specified in --dataset. 
 
+```
 CUDA_VISIBLE_DEVICES=0 python finetune_data.py --dataset Tweets_proc --report_per_epoch
+```
 
 The results are redirected to logs folder with dataset name. The results will have two set of files - best results json file highlighting performance metrics such as accuracy, f1 score, recall, precision of models that are best comparatively. Another file is full report csv file which has performance metrics for every epoch for every model.
 
 
 ## Citation
 
+```
 @inproceedings{hu2022conflibert,
     title={ConfliBERT: A Pre-trained Language Model for Political Conflict and Violence},
     author={Hu, Yibo and Hosseini, MohammadSaleh and Parolin, Erick Skorupa and Osorio, Javier and Khan, Latifur and Brandt, Patrick and D’Orazio, Vito},
@@ -99,3 +110,4 @@ The results are redirected to logs folder with dataset name. The results will ha
     pages={5469--5482},
     year={2022}
 }
+```
